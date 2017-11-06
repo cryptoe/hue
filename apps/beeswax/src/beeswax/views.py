@@ -900,14 +900,24 @@ def parse_out_jobs(log, engine='mr', with_state=False):
   """
   ret = []
 
-  if engine.lower() == 'mr':
-    start_pattern = HADOOP_JOBS_RE
-  elif engine.lower() == 'spark':
-    start_pattern = SPARK_APPLICATION_RE
-  elif engine.lower() == 'tez':
-    start_pattern = TEZ_APPLICATION_RE
-  else:
+  ## check engine
+  if engine.lower() != 'mr' and engine.lower() != 'spark' and engine.lower() != 'tez':
     raise ValueError(_('Cannot parse job IDs for execution engine %(engine)s') % {'engine': engine})
+
+  ## exit if lenght of log is 0
+  if len(log) == 0:
+    return ret
+
+  ## default engine as MR
+  start_pattern = HADOOP_JOBS_RE;
+
+  if len(HADOOP_JOBS_RE.findall(log)) != 0:
+    start_pattern = HADOOP_JOBS_RE
+  elif len(SPARK_APPLICATION_RE.findall(log)) != 0:
+    start_pattern = SPARK_APPLICATION_RE
+  elif len(TEZ_APPLICATION_RE.findall(log)) != 0:
+    start_pattern = TEZ_APPLICATION_RE
+
 
   for match in start_pattern.finditer(log):
     job_id = match.group(1)
